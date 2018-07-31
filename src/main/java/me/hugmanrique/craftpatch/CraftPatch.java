@@ -1,100 +1,63 @@
 package me.hugmanrique.craftpatch;
 
-import io.reflectoring.diffparser.api.DiffParser;
-import io.reflectoring.diffparser.api.UnifiedDiffParser;
-import io.reflectoring.diffparser.api.model.Diff;
-import javassist.CannotCompileException;
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.NotFoundException;
-import javassist.expr.*;
+import javassist.*;
+import me.hugmanrique.craftpatch.util.ClassUtil;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.util.List;
 import java.util.Objects;
 
 /**
  * @author Hugo Manrique
- * @since 28/07/2018
+ * @since 31/07/2018
  */
 public class CraftPatch {
-    private final DiffParser parser;
+    private final ClassPool classPool;
+
+    public CraftPatch(ClassPool classPool) {
+        this.classPool = Objects.requireNonNull(classPool);
+    }
 
     public CraftPatch() {
-        this.parser = new UnifiedDiffParser();
+        this(ClassPool.getDefault());
     }
 
-    public void applyPatch(File patchFile) throws IOException {
-        List<Diff> diffs = parser.parse(patchFile);
-    }
+    public Class applyPatch(Patch patch) throws CannotCompileException {
+        CtClass clazz = classPool.getOrNull(patch.target());
 
-    public void applyPatch(byte[] patchBytes) {
-        List<Diff> diffs = parser.parse(patchBytes);
-    }
-
-    public void applyPatch(InputStream in) {
-        List<Diff> diffs = parser.parse(in);
-
-    }
-
-    private void applyDiff(Diff diff) {
-        if (!Objects.equals(diff.getFromFileName(), diff.getToFileName())) {
-            // We cannot refactor file renames
-            return;
+        if (clazz == null) {
+            throw new NullPointerException("Cannot find " + patch.target() + " class");
         }
 
-        ClassPool pool = ClassPool.getDefault();
+        clazz.defrost();
+        CtMethod method;
 
         try {
-            CtClass clazz = pool.getCtClass(diff.getToFileName());
-
-            clazz.instrument(new ExprEditor() {
-                @Override
-                public void edit(NewExpr e) throws CannotCompileException {
-                    super.edit(e);
-                }
-
-                @Override
-                public void edit(NewArray a) throws CannotCompileException {
-                    super.edit(a);
-                }
-
-                @Override
-                public void edit(MethodCall m) throws CannotCompileException {
-                    super.edit(m);
-                }
-
-                @Override
-                public void edit(ConstructorCall c) throws CannotCompileException {
-                    super.edit(c);
-                }
-
-                @Override
-                public void edit(FieldAccess f) throws CannotCompileException {
-                    super.edit(f);
-                }
-
-                @Override
-                public void edit(Instanceof i) throws CannotCompileException {
-                    super.edit(i);
-                }
-
-                @Override
-                public void edit(Cast c) throws CannotCompileException {
-                    super.edit(c);
-                }
-
-                @Override
-                public void edit(Handler h) throws CannotCompileException {
-                    super.edit(h);
-                }
-            });
-
-
+            method = getMethod(patch, clazz);
         } catch (NotFoundException e) {
             e.printStackTrace();
+            return null;
         }
+
+        patch.transform(classPool, clazz, method);
+
+        return clazz.toClass();
+    }
+
+    private CtMethod getMethod(Patch patch, CtClass clazz) throws NotFoundException {
+        Class<?>[] methodParams = patch.methodParams();
+        String methodName = patch.method();
+
+        // Apply transformations to all the class methods
+        if (methodName == null) {
+            return null;
+        }
+
+        if (methodParams != null) {
+            CtClass[] paramClasses = ClassUtil.toJavassistClasses(classPool, methodParams);
+            return clazz.getDeclaredMethod(methodName, paramClasses);
+        } else if (patch.methodDescription() != null) {
+            return clazz.getMethod(methodName, patch.methodDescription());
+        }
+
+        return clazz.getDeclaredMethod(methodName);
     }
 }
