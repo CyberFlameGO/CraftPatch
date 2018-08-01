@@ -1,9 +1,10 @@
 package me.hugmanrique.craftpatch;
 
+import javassist.NotFoundException;
 import me.hugmanrique.craftpatch.transform.CatchTransform;
 import org.junit.Test;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Hugo Manrique
@@ -28,6 +29,32 @@ public class CatchTest extends PatchTest {
         instance.method();
 
         assertTrue("Prepended catch block should still throw", instance.thrown);
+    }
+
+    @Test
+    public void testFilter() {
+        applyPatch(
+            "FilterClass",
+            "method",
+            new CatchTransform(handler -> {
+                try {
+                    String className = handler.getType().getSimpleName();
+                    assertEquals("Exception type passed to filter is RuntimeException", "RuntimeException", className);
+
+                    return false;
+                } catch (NotFoundException e) {
+                    e.printStackTrace();
+                    fail();
+                }
+
+                return true;
+            }).prepend("this.pass = false;")
+        );
+
+        FilterClass instance = new FilterClass();
+        instance.method();
+
+        assertTrue("Catch block hasn't been modified", instance.pass);
     }
 
     // Javassist doesn't currently support replacing the body of a Handler (catch/finally) block
@@ -73,6 +100,16 @@ public class CatchTest extends PatchTest {
             try {
                 throw new IllegalArgumentException();
             } catch (Exception ignored) {}
+        }
+    }
+
+    class FilterClass {
+        boolean pass = true;
+
+        void method() {
+            try {
+                throw new RuntimeException();
+            } catch (RuntimeException ignored) {}
         }
     }
 }
