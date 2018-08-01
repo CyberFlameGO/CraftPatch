@@ -26,7 +26,7 @@ Install CraftPatch using [`Maven`](https://maven.apache.org/) by adding the JitP
 </repositories>
 ```
 
-Next, add the `craftpatch` dependency:
+Next, add the `CraftPatch` dependency:
 
 ```xml
 <dependency>
@@ -44,7 +44,7 @@ Let's get started by creating a `CraftPatch` instance, which will be in charge o
 private final CraftPatch patcher = new CraftPatch();
 ```
 
-You can also pass a custom Javassist `ClassPool` object if you need to handle more complex class loading scenarios.
+You can also pass your own Javassist `ClassPool` object if you need to handle more complex class loading scenarios.
 
 Next, we will create a `Patch` that will hold all the transformations we want to apply:
 
@@ -69,18 +69,18 @@ class MyClass {
 }
 ```
 
-**Important:** due to how class loading works in Java we can only transform non-loaded classes, which means you cannot use the referenced class (`MyClass`) before the patch gets applied by the `CraftPatch` instance we just created.
+> **Important:** due to how class loading works in Java we can only transform non-loaded classes, which means you cannot use the referenced class (`MyClass`) before the patch gets applied by the `CraftPatch` instance we just created. Calling `MyClass.class.getName()` would load the class, so we need to specify the classname using a raw `String`.
 
 Now, let's try to override the value returned by the `ownText` field access and return `"def"` instead:
 
 ```java
 patch.addTransformation(
-    new FieldAccessTransform()
-        .setResult("\"def\"")
+    new FieldAccessTransform(fieldAccess -> fieldAccess.getFieldName().equals("ownText"))
+            .setResult("\"def\"")
 );
 ```
 
-As you can see, all the methods a `Transformation` has expect raw Java source code, `Javassist` will compile it on the fly so you don't have to leran the specifications of the Java bytecode.
+As you can see, all the methods a `Transformation` has expect raw Java source code, `Javassist` will compile it on the fly so you don't have to leran the specifications of the Java bytecode. In this case we also wouldn't need to pass a filter as we only have one field access in the `myMethod` method.
 
 Finally, we can apply the `Patch` by calling the `CraftPatch#applyPatch` method:
 
@@ -91,6 +91,12 @@ MyClass instance = new MyClass();
 
 instance.myMethod("def"); // will return true
 ```
+
+## More details
+
+Every kind of bytecode operation has it's own `Transformation` which you can find on the `me.hugmanrique.craftpatch.transform` package. We also recommend you to take a look at the tests to see how all of them work and what they expect.
+
+As the passed source code gets compiled by [Javassist](http://www.javassist.org/), there are special variables you can use to modify the methods in more advanced ways. Here's the tutorial page which specifies which variables each `Transformation` supports: [javassist.org/tutorial/tutorial2.html](http://www.javassist.org/tutorial/tutorial2.html)
 
 # License
 
