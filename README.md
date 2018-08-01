@@ -45,15 +45,6 @@ private final CraftPatch patcher = new CraftPatch();
 
 You can also pass your own Javassist `ClassPool` object if you need to handle more complex class loading scenarios.
 
-Next, we will create a `Patch` that will hold all the transformations we want to apply:
-
-```java
-// String target, String methodName
-// String target, String methodName, String methodDescription
-// String target, String methodName, Class<?>[] methodParamTypes (we will be using this one)
-Patch patch = new SimplePatch("pack.MyClass", "myMethod", String.class);
-```
-
 Assume the class we want to transform is the following:
 
 ```java
@@ -66,6 +57,15 @@ class MyClass {
         return ownText.equals(text);
     }
 }
+```
+
+Next, we will create a `Patch` that will hold all the transformations we want to apply:
+
+```java
+// String target, String methodName
+// String target, String methodName, String methodDescription
+// String target, String methodName, Class<?>[] methodParamTypes (we will be using this one)
+Patch patch = new SimplePatch("pack.MyClass", "myMethod", String.class);
 ```
 
 > **Important:** due to how class loading works in Java we can only transform non-loaded classes, which means you cannot use the referenced class (`MyClass`) before the patch gets applied by the `CraftPatch` instance we just created. Calling `MyClass.class.getName()` would load the class, so we need to specify the classname using a raw `String`.
