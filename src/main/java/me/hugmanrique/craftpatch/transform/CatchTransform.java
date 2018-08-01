@@ -31,8 +31,26 @@ public class CatchTransform extends ExprReplacementTransform<Handler> {
         }
 
         if (hasReplacement) {
-            target.replace(getRawStatement());
+            target.replace(getReplacement());
         }
+    }
+
+    private String getReplacement() {
+        return "{" + getRawStatement() + after + "}";
+    }
+
+    /*
+     * Javassist doesn't support Handler#replace yet,
+     * it does support #insertBefore though
+     */
+    @Override
+    public ExprReplacementTransform<Handler> replace(String statement) {
+        throw new UnsupportedOperationException("Not implemented yet");
+    }
+
+    @Override
+    public ExprReplacementTransform<Handler> append(String statement) {
+        throw new UnsupportedOperationException("Not implemented yet");
     }
 
     @Override
