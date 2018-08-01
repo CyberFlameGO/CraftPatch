@@ -4,6 +4,7 @@ import me.hugmanrique.craftpatch.transform.MethodCallTransform;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Hugo Manrique
@@ -42,6 +43,21 @@ public class MethodCallTest extends PatchTest {
         );
     }
 
+    @Test
+    public void testFilter() {
+        applyPatch(
+            "FilterClass",
+            "method",
+            new MethodCallTransform(call -> call.getMethodName().equals("other"))
+                .append("this.test = true;")
+        );
+
+        FilterClass instance = new FilterClass();
+        instance.method();
+
+        assertTrue("Filtered transformed method call must set field to true", instance.test);
+    }
+
 
     // Mock classes
     class PlainClass {
@@ -74,6 +90,13 @@ public class MethodCallTest extends PatchTest {
         void other(String text) {}
     }
 
+    class FilterClass {
+        boolean test = false;
 
+        void method() {
+            other();
+        }
 
+        void other() {}
+    }
 }

@@ -1,11 +1,11 @@
 package me.hugmanrique.craftpatch.util;
 
-import javassist.bytecode.BadBytecode;
-import javassist.bytecode.SignatureAttribute;
+import javassist.CtMethod;
+import javassist.Modifier;
+import javassist.NotFoundException;
 import javassist.expr.MethodCall;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 
 /**
  * @author Hugo Manrique
@@ -53,6 +53,10 @@ public class StatementUtil {
     }
 
     private static void checkCorrectParameterCount(Method method, String parameters) {
+        if (method.isVarArgs()) {
+            return;
+        }
+
         int parameterCount = method.getParameterCount();
         int actualCount = getParameterCount(parameters);
 
@@ -67,10 +71,17 @@ public class StatementUtil {
         int parameterCount;
 
         try {
-            parameterCount = SignatureAttribute.toMethodSignature(call.getSignature()).getTypeParameters().length;
-        } catch (BadBytecode badBytecode) {
-            badBytecode.printStackTrace();
-            throw new RuntimeException(badBytecode);
+            CtMethod method = call.getMethod();
+            int modifiers = method.getModifiers();
+
+            // Method has varargs, we cannot validate
+            if ((modifiers & Modifier.VARARGS) != 0) {
+                return;
+            }
+
+            parameterCount = method.getParameterTypes().length;
+        } catch (NotFoundException e) {
+            throw new RuntimeException(e);
         }
 
         int actualCount = getParameterCount(parameters);
