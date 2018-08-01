@@ -1,5 +1,6 @@
 package me.hugmanrique.craftpatch;
 
+import javassist.NotFoundException;
 import me.hugmanrique.craftpatch.transform.CastTransform;
 import org.junit.Test;
 
@@ -8,7 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Hugo Manrique
@@ -46,6 +47,30 @@ public class CastTest extends PatchTest {
         assertTrue("Replaced object must be instance of Vector", instance.method() instanceof Vector);
     }
 
+    @Test
+    public void testFilter() {
+        applyPatch(
+            "FilterClass",
+            "method",
+            new CastTransform(cast -> {
+                try {
+                    String className = cast.getType().getSimpleName();
+                    assertEquals("Type passed to filter is ArrayList", "ArrayList", className);
+
+                    return true;
+                } catch (NotFoundException e) {
+                    e.printStackTrace();
+                    fail();
+                }
+
+                return false;
+            }).prepend("$1 = new java.util.ArrayList();")
+        );
+
+        FilterClass instance = new FilterClass();
+        instance.method();
+    }
+
     // Mock classes
     class DummyClass {
         List<String> list = new ArrayList<>();
@@ -68,6 +93,15 @@ public class CastTest extends PatchTest {
 
         AbstractList<String> method() {
             return (AbstractList<String>) list;
+        }
+    }
+
+    class FilterClass {
+        List list = new Vector();
+
+        ArrayList method() {
+            // Will throw ClassCastException
+            return (ArrayList) list;
         }
     }
 }
