@@ -1,6 +1,5 @@
 # :hamburger: CraftPatch
 
-[![releases][releases]][releases-url]
 [![jitpack][jitpack]][jitpack-url]
 [![tests][tests]][tests-url]
 [![license][license]][license-url]
@@ -102,8 +101,6 @@ As the passed source code gets compiled by [Javassist](http://www.javassist.org/
 
 [MIT](LICENSE) &copy; [Hugo Manrique](https://hugmanrique.me)
 
-[releases]: https://img.shields.io/github/downloads/hugmanrique/CraftPatch/total.svg
-[releases-url]: https://github.com/hugmanrique/CraftPatch/releases
 [jitpack]: https://jitpack.io/v/hugmanrique/CraftPatch.svg
 [jitpack-url]: https://jitpack.io/#hugmanrique/CraftPatch
 [tests]: https://img.shields.io/travis/hugmanrique/CraftPatch/master.svg
