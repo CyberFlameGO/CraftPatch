@@ -21,17 +21,18 @@ public class CatchTransform extends ExprReplacementTransform<Handler> {
     @Override
     protected void modify(Handler target) throws CannotCompileException {
         boolean hasReplacement = getRawStatement() != null;
+        boolean hasPrepend = !before.isEmpty();
 
-        if (!hasReplacement && before.isEmpty()) {
+        if (!hasReplacement && !hasPrepend) {
             throw new NullPointerException("Catch transformation must have appended content or a body replacement");
-        }
-
-        if (!before.isEmpty()) {
-            target.insertBefore(before);
         }
 
         if (hasReplacement) {
             target.replace(getReplacement());
+        }
+
+        if (hasPrepend) {
+            target.insertBefore(before);
         }
     }
 
