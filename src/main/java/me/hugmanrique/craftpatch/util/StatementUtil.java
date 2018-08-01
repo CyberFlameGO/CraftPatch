@@ -60,6 +60,10 @@ public class StatementUtil {
     }
 
     public static void checkParameters(MethodCall call, String parameters) {
+        if (parameters == null) {
+            return;
+        }
+
         int parameterCount;
 
         try {
