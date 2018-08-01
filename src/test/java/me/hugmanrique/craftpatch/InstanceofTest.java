@@ -56,22 +56,13 @@ public class InstanceofTest extends PatchTest {
 
     @Test
     public void testMethodPrepend() {
-        Method method;
-
-        try {
-            method = getClass().getDeclaredMethod("callMethod", String.class);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-            fail();
-            return;
-        }
+        Method method = getMethod("callMethod", String.class);
 
         applyPatch(
             "MethodPrepend",
             "method",
             new InstanceofTransform()
                 .callBefore(method, "\"pass\"")
-                .debug()
         );
 
         MethodPrepend instance = new MethodPrepend();
@@ -135,6 +126,7 @@ public class InstanceofTest extends PatchTest {
         assertTrue("Non-transformed instanceof must return true", instance.method());
     }
 
+    // Mock classes
     class PlainClass {
         boolean method() {
             return this instanceof Object;

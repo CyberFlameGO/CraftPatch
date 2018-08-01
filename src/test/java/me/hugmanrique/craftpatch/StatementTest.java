@@ -13,6 +13,7 @@ import static org.junit.Assert.assertEquals;
  * @since 01/08/2018
  */
 public class StatementTest {
+    // TODO Move this class to PatchTest or create static util
     private Method getMethod(String name, Class<?>... parameterTypes) {
         try {
             return getClass().getDeclaredMethod(name, parameterTypes);
