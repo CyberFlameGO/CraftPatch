@@ -79,7 +79,7 @@ patch.addTransformation(
 );
 ```
 
-As you can see, all the methods a `Transformation` has expect raw Java source code, `Javassist` will compile it on the fly so you don't have to leran the specifications of the Java bytecode. In this case we also wouldn't need to pass a filter as we only have one field access in the `myMethod` method.
+As you can see, all the methods a `Transformation` has expect raw Java source code, which `Javassist` will compile it on the fly so you don't have to learn the specifications of the Java bytecode. In this case we wouldn't need to pass a filter as we only have one field access in the `myMethod` method.
 
 Finally, we can apply the `Patch` by calling the `CraftPatch#applyPatch` method:
 
@@ -93,7 +93,7 @@ instance.myMethod("def"); // will return true
 
 ## More details
 
-Every kind of bytecode operation has it's own `Transformation` which you can find on the `me.hugmanrique.craftpatch.transform` package. We also recommend you to take a look at the tests to see how all of them work and what they expect.
+Every kind of bytecode operation has it's own `Transformation` which you can find on the `me.hugmanrique.craftpatch.transform` package. We also recommend you to take a look at the tests to see how each transformation works and what each method expects.
 
 As the passed source code gets compiled by [Javassist](http://www.javassist.org/), there are special variables you can use to modify the methods in more advanced ways. Here's the tutorial page which specifies which variables each `Transformation` supports: [javassist.org/tutorial/tutorial2.html](http://www.javassist.org/tutorial/tutorial2.html)
 
