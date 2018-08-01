@@ -2,6 +2,7 @@ package me.hugmanrique.craftpatch.transform;
 
 import javassist.CannotCompileException;
 import javassist.expr.MethodCall;
+import me.hugmanrique.craftpatch.util.StatementUtil;
 
 import java.util.function.Predicate;
 
@@ -10,6 +11,8 @@ import java.util.function.Predicate;
  * @since 31/07/2018
  */
 public class MethodCallTransform extends ExprReplacementTransform<MethodCall> {
+    private String parameters;
+
     public MethodCallTransform(Predicate<MethodCall> filter) {
         super(MethodCall.class, filter);
     }
@@ -20,6 +23,7 @@ public class MethodCallTransform extends ExprReplacementTransform<MethodCall> {
 
     @Override
     protected void modify(MethodCall target) throws CannotCompileException {
+        StatementUtil.checkParameters(target, parameters);
         target.replace(getStatement());
     }
 
@@ -28,8 +32,9 @@ public class MethodCallTransform extends ExprReplacementTransform<MethodCall> {
         return "$_ = $proceed($$);";
     }
 
-    public MethodCallTransform setArguments(String arguments) {
-        replace(getDefault().replace("$$", arguments));
+    public MethodCallTransform setParameters(String parameters) {
+        replace(getDefault().replace("$$", parameters));
+        this.parameters = parameters;
         return this;
     }
 }

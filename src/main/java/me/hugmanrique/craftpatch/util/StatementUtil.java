@@ -1,5 +1,9 @@
 package me.hugmanrique.craftpatch.util;
 
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.SignatureAttribute;
+import javassist.expr.MethodCall;
+
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
@@ -26,15 +30,15 @@ public class StatementUtil {
         return checkStatement(statement, '}');
     }
 
-    private static int getParameterCount(String arguments) {
-        if (arguments.trim().isEmpty()) {
+    private static int getParameterCount(String parameters) {
+        if (parameters.trim().isEmpty()) {
             return 0;
         }
 
         int commas = 0;
 
-        for (int i = 0; i < arguments.length(); i++) {
-            if (arguments.charAt(i) == ',') {
+        for (int i = 0; i < parameters.length(); i++) {
+            if (parameters.charAt(i) == ',') {
                 commas++;
             }
         }
@@ -42,13 +46,31 @@ public class StatementUtil {
         return commas + 1;
     }
 
+    private static void checkCorrectParameterCount(int expected, int actual) {
+        if (expected != actual) {
+            throw new IllegalArgumentException("Illegal number of method call parameters, expected " + expected + ", got " + actual + " instead");
+        }
+    }
+
     private static void checkCorrectParameterCount(Method method, String parameters) {
         int parameterCount = method.getParameterCount();
         int actualCount = getParameterCount(parameters);
 
-        if (parameterCount != actualCount) {
-            throw new IllegalArgumentException("Illegal number of method call parameters, expected " + parameterCount + ", got " + actualCount + " instead");
+        checkCorrectParameterCount(parameterCount, actualCount);
+    }
+
+    public static void checkParameters(MethodCall call, String parameters) {
+        int parameterCount;
+
+        try {
+            parameterCount = SignatureAttribute.toMethodSignature(call.getSignature()).getTypeParameters().length;
+        } catch (BadBytecode badBytecode) {
+            badBytecode.printStackTrace();
+            throw new RuntimeException(badBytecode);
         }
+
+        int actualCount = getParameterCount(parameters);
+        checkCorrectParameterCount(parameterCount, actualCount);
     }
 
     public static String generateMethodInvocation(Method method, String parameters) {
