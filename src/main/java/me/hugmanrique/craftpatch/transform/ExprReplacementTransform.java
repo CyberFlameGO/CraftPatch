@@ -24,7 +24,7 @@ public abstract class ExprReplacementTransform<T extends Expr> extends AbstractT
 
     @Override
     public void apply(T target) throws CannotCompileException {
-        if (!isNullStatementAllowed() && statement == null) {
+        if (!isNullStatementAllowed() && statement == null && before.isEmpty() && after.isEmpty()) {
             throw new NullPointerException("Transformation doesn't support null statement replacements");
         }
 
@@ -64,17 +64,22 @@ public abstract class ExprReplacementTransform<T extends Expr> extends AbstractT
         return this;
     }
 
-    public ExprReplacementTransform<T> callBefore(Method method, String arguments) {
-        String statement = StatementUtil.generateMethodInvocation(method, arguments);
+    public ExprReplacementTransform<T> callBefore(Method method, String parameters) {
+        String statement = StatementUtil.generateMethodInvocation(method, parameters);
         prepend(statement);
 
         return this;
     }
 
-    public ExprReplacementTransform<T> callAfter(Method method, String arguments) {
-        String statement = StatementUtil.generateMethodInvocation(method, arguments);
+    public ExprReplacementTransform<T> callAfter(Method method, String parameters) {
+        String statement = StatementUtil.generateMethodInvocation(method, parameters);
         append(statement);
 
+        return this;
+    }
+
+    public ExprReplacementTransform<T> debug() {
+        System.out.println(getStatement());
         return this;
     }
 }

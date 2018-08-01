@@ -4,6 +4,8 @@ import javassist.NotFoundException;
 import me.hugmanrique.craftpatch.transform.InstanceofTransform;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
+
 import static org.junit.Assert.*;
 
 /**
@@ -14,6 +16,66 @@ public class InstanceofTest extends PatchTest {
     @Test(expected = NullPointerException.class)
     public void testNullStatement() {
         applyPatch("PlainClass", "method", new InstanceofTransform());
+    }
+
+    @Test
+    public void testPrepend() {
+        applyPatch(
+            "PrependClass",
+            "method",
+            new InstanceofTransform()
+                .prepend("this.field = true;")
+        );
+
+        PrependClass instance = new PrependClass();
+        instance.method();
+
+        assertTrue("Prepend statement must set field to true", instance.field);
+    }
+
+    @Test
+    public void testAppend() {
+        applyPatch(
+            "AppendClass",
+            "method",
+            new InstanceofTransform()
+                .append("this.field = true;")
+        );
+
+        AppendClass instance = new AppendClass();
+        instance.method();
+
+        assertTrue("Append statement must set field to true", instance.field);
+    }
+
+    public static void callMethod(String value) {
+        if (!"pass".equals(value)) {
+            fail();
+        }
+    }
+
+    @Test
+    public void testMethodPrepend() {
+        Method method;
+
+        try {
+            method = getClass().getDeclaredMethod("callMethod", String.class);
+        } catch (NoSuchMethodException e) {
+            e.printStackTrace();
+            fail();
+            return;
+        }
+
+        applyPatch(
+            "MethodPrepend",
+            "method",
+            new InstanceofTransform()
+                .callBefore(method, "\"pass\"")
+                .debug()
+        );
+
+        MethodPrepend instance = new MethodPrepend();
+        instance.method();
     }
 
     @Test
@@ -74,6 +136,28 @@ public class InstanceofTest extends PatchTest {
     }
 
     class PlainClass {
+        boolean method() {
+            return this instanceof Object;
+        }
+    }
+
+    class PrependClass {
+        boolean field = false;
+
+        boolean method() {
+            return this instanceof Object;
+        }
+    }
+
+    class AppendClass {
+        boolean field = false;
+
+        boolean method() {
+            return this instanceof Object;
+        }
+    }
+
+    class MethodPrepend {
         boolean method() {
             return this instanceof Object;
         }
