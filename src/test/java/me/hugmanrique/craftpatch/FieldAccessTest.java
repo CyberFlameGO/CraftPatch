@@ -122,5 +122,4 @@ public class FieldAccessTest extends PatchTest {
             return pi;
         }
     }
-
 }
