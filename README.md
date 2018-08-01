@@ -4,7 +4,7 @@
 [![tests][tests]][tests-url]
 [![license][license]][license-url]
 
-An easy to use Java instrumentation API that allows you to patch methods using transformations which can target specific casts, fields accesses...
+An easy to use Java instrumentation API that allows you to patch methods using transformations which can target specific method invocations, fields accesses...
 
 ## Features
 
