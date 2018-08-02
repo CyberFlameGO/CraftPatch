@@ -49,7 +49,7 @@ public abstract class BaseTransform<T> extends AbstractTransform<T> {
     }
 
     protected boolean hasStatement() {
-        return statement != null && !before.isEmpty() && !after.isEmpty();
+        return statement != null || !before.isEmpty() || !after.isEmpty();
     }
 
     // Transformer methods
