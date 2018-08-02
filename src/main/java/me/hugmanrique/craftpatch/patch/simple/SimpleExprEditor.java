@@ -1,13 +1,13 @@
 package me.hugmanrique.craftpatch.patch.simple;
 
 import javassist.CannotCompileException;
-import javassist.CtMethod;
 import javassist.expr.*;
 import me.hugmanrique.craftpatch.Transformation;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+
+import static me.hugmanrique.craftpatch.util.TransformationUtil.getTransformations;
 
 /**
  * @author Hugo Manrique
@@ -15,18 +15,6 @@ import java.util.List;
  */
 @SuppressWarnings("unchecked")
 class SimpleExprEditor extends ExprEditor {
-    static List<Transformation> getTransformations(Collection<Transformation> transformations, Class<?> type) {
-        List<Transformation> filtered = new ArrayList<>();
-
-        for (Transformation transformation : transformations) {
-            if (transformation.getType().equals(type)) {
-                filtered.add(transformation);
-            }
-        }
-
-        return filtered;
-    }
-
     private final List<Transformation> methodCallTransforms;
     private final List<Transformation> fieldAccessTransforms;
     private final List<Transformation> newExprTransforms;

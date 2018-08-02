@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import static me.hugmanrique.craftpatch.util.TransformationUtil.getTransformations;
+
 /**
  * @author Hugo Manrique
  * @since 31/07/2018
@@ -43,7 +45,7 @@ public class SimplePatch extends AbstractPatch {
     }
 
     private void applyMethodTransforms(CtClass clazz, Collection<Transformation> transformations) throws CannotCompileException {
-        List<Transformation> methodTransforms = SimpleExprEditor.getTransformations(transformations, CtMethod.class);
+        List<Transformation> methodTransforms = getTransformations(transformations, CtMethod.class);
 
         if (methodTransforms.isEmpty()) {
             return;
