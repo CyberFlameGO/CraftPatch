@@ -25,7 +25,7 @@ public class MethodTest extends PatchTest {
         applyPatch(
             "ReplaceClass",
             "method",
-            new MethodTransform(method -> true)
+            new MethodTransform(method -> method.getName().equals("method"))
                 .replace("this.code = 4567;")
         );
 
@@ -37,8 +37,18 @@ public class MethodTest extends PatchTest {
 
     @Test
     public void testLineInsertion() {
+        applyPatch(
+        "LineInsertion",
+            "method",
+            new MethodTransform(method -> method.getName().equals("method"))
+                .insertAt(2, "this.value++;")
+        );
 
+        LineInsertion instance = new LineInsertion();
+        instance.method();
 
+        // If line gets inserted after value *= 2, the result will be 3
+        assertEquals("Statement must have been inserted at the correct line", 4, instance.value);
     }
 
     // Mock classes
@@ -51,6 +61,15 @@ public class MethodTest extends PatchTest {
 
         void method() {
             code = 1234;
+        }
+    }
+
+    class LineInsertion {
+        int value = 0;
+
+        void method() {
+            value++; // 1
+            value *= 2; // 2, will be 4 (once we insert value++; on previous line)
         }
     }
 }
