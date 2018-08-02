@@ -60,4 +60,8 @@ public class CraftPatch {
 
         return clazz.getDeclaredMethod(methodName);
     }
+
+    public ClassPool getPool() {
+        return classPool;
+    }
 }
