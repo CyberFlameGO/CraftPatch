@@ -79,7 +79,7 @@ patch.addTransformation(
 );
 ```
 
-As you can see, all the methods a `Transformation` has expect raw Java source code, which `Javassist` will compile it on the fly so you don't have to learn the specifications of the Java bytecode. In this case we wouldn't need to pass a filter as we only have one field access in the `myMethod` method.
+As you can see, all the methods a `Transformation` has expect raw Java source code, which `Javassist` will compile on the fly, so you don't have to learn the specifications of the Java bytecode. In this case we wouldn't need to pass a filter as we only have one field access in the `myMethod` method.
 
 Finally, we can apply the `Patch` by calling the `CraftPatch#applyPatch` method:
 
