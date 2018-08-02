@@ -1,6 +1,7 @@
 package me.hugmanrique.craftpatch.patch.simple;
 
 import javassist.CannotCompileException;
+import javassist.CtMethod;
 import javassist.expr.*;
 import me.hugmanrique.craftpatch.Transformation;
 
@@ -14,7 +15,7 @@ import java.util.List;
  */
 @SuppressWarnings("unchecked")
 class SimpleExprEditor extends ExprEditor {
-    private static List<Transformation> getTransformations(Collection<Transformation> transformations, Class<?> type) {
+    static List<Transformation> getTransformations(Collection<Transformation> transformations, Class<?> type) {
         List<Transformation> filtered = new ArrayList<>();
 
         for (Transformation transformation : transformations) {

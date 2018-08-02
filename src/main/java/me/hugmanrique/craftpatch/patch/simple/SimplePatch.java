@@ -8,6 +8,8 @@ import me.hugmanrique.craftpatch.Transformation;
 import me.hugmanrique.craftpatch.patch.AbstractPatch;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * @author Hugo Manrique
@@ -28,12 +30,29 @@ public class SimplePatch extends AbstractPatch {
 
     @Override
     public void transform(ClassPool pool, CtClass clazz, CtMethod method) throws CannotCompileException {
-        SimpleExprEditor editor = new SimpleExprEditor(transformations());
+        Collection<Transformation> transformations = transformations();
+        SimpleExprEditor editor = new SimpleExprEditor(transformations);
+
+        applyMethodTransforms(clazz, transformations);
 
         if (method == null) {
             clazz.instrument(editor);
         } else {
             method.instrument(editor);
+        }
+    }
+
+    private void applyMethodTransforms(CtClass clazz, Collection<Transformation> transformations) throws CannotCompileException {
+        List<Transformation> methodTransforms = SimpleExprEditor.getTransformations(transformations, CtMethod.class);
+
+        if (methodTransforms.isEmpty()) {
+            return;
+        }
+
+        for (CtMethod method : clazz.getMethods()) {
+            for (Transformation<CtMethod> transformation : methodTransforms) {
+                transformation.apply(method);
+            }
         }
     }
 

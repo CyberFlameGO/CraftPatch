@@ -6,6 +6,7 @@ import me.hugmanrique.craftpatch.transform.BaseTransform;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 import static me.hugmanrique.craftpatch.util.StatementUtil.checkStatement;
@@ -18,11 +19,7 @@ public class MethodTransform extends BaseTransform<CtMethod> {
     private Map<Integer, String> insertions;
 
     public MethodTransform(Predicate<CtMethod> filter) {
-        super(CtMethod.class, filter);
-    }
-
-    public MethodTransform() {
-        this(null);
+        super(CtMethod.class, Objects.requireNonNull(filter));
     }
 
     @Override
