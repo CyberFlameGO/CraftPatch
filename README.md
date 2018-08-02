@@ -9,7 +9,7 @@ An easy to use Java instrumentation API that allows you to patch methods using t
 ## Features
 
 - Flexible and simple API built for all specific use cases
-- High performance: transformations compile source code to bytecode on the fly using [Javassist](http://www.javassist.org/)
+- High performance: transformations compile source code to bytecode on the fly using [Javassist](http://www.javassist.org/) (which uses your `javac` binary)
 - First-class support for external transformations and patch classes
 
 ## Getting started
@@ -96,6 +96,8 @@ instance.myMethod("def"); // will return true
 Every kind of bytecode operation has it's own `Transformation` which you can find on the `me.hugmanrique.craftpatch.transform` package. We also recommend you to take a look at the tests to see how each transformation works and what each method expects.
 
 As the passed source code gets compiled by [Javassist](http://www.javassist.org/), there are special variables you can use to modify the methods in more advanced ways. Here's the tutorial page which specifies which variables each `Transformation` supports: [javassist.org/tutorial/tutorial2.html](http://www.javassist.org/tutorial/tutorial2.html)
+
+A better reference page is also in the works.
 
 # License
 
