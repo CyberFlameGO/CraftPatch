@@ -1,6 +1,6 @@
 package me.hugmanrique.craftpatch;
 
-import me.hugmanrique.craftpatch.transform.MethodCallTransform;
+import me.hugmanrique.craftpatch.transform.expr.MethodCallTransform;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;

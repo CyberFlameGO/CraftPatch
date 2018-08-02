@@ -1,4 +1,4 @@
-package me.hugmanrique.craftpatch.transform;
+package me.hugmanrique.craftpatch.transform.expr;
 
 import javassist.CannotCompileException;
 import javassist.expr.Instanceof;

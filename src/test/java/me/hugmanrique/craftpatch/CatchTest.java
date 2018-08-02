@@ -1,7 +1,7 @@
 package me.hugmanrique.craftpatch;
 
 import javassist.NotFoundException;
-import me.hugmanrique.craftpatch.transform.CatchTransform;
+import me.hugmanrique.craftpatch.transform.expr.CatchTransform;
 import org.junit.Test;
 
 import static org.junit.Assert.*;

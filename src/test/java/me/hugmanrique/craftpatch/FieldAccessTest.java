@@ -1,6 +1,6 @@
 package me.hugmanrique.craftpatch;
 
-import me.hugmanrique.craftpatch.transform.FieldAccessTransform;
+import me.hugmanrique.craftpatch.transform.expr.FieldAccessTransform;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
@@ -59,7 +59,7 @@ public class FieldAccessTest extends PatchTest {
             "MethodAppend",
             "getText",
             new FieldAccessTransform()
-                .callAfter(method, "\"pass\"")
+                .appendCall(method, "\"pass\"")
         );
 
         MethodAppend instance = new MethodAppend();

@@ -1,7 +1,7 @@
 package me.hugmanrique.craftpatch;
 
 import javassist.NotFoundException;
-import me.hugmanrique.craftpatch.transform.CastTransform;
+import me.hugmanrique.craftpatch.transform.expr.CastTransform;
 import org.junit.Test;
 
 import java.util.AbstractList;

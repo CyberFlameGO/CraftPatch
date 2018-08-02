@@ -1,7 +1,7 @@
 package me.hugmanrique.craftpatch;
 
 import javassist.NotFoundException;
-import me.hugmanrique.craftpatch.transform.InstanceofTransform;
+import me.hugmanrique.craftpatch.transform.expr.InstanceofTransform;
 import org.junit.Test;
 
 import java.lang.reflect.Method;
@@ -62,7 +62,7 @@ public class InstanceofTest extends PatchTest {
             "MethodPrepend",
             "method",
             new InstanceofTransform()
-                .callBefore(method, "\"pass\"")
+                .prependCall(method, "\"pass\"")
         );
 
         MethodPrepend instance = new MethodPrepend();

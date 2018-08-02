@@ -1,4 +1,4 @@
-package me.hugmanrique.craftpatch.transform;
+package me.hugmanrique.craftpatch.transform.expr;
 
 import javassist.CannotCompileException;
 import javassist.expr.Handler;
@@ -60,7 +60,7 @@ public class CatchTransform extends ExprReplacementTransform<Handler> {
     }
 
     @Override
-    protected boolean isNullStatementAllowed() {
+    protected boolean allowNullStatements() {
         return true;
     }
 

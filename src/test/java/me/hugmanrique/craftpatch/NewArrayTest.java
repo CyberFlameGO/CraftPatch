@@ -1,6 +1,6 @@
 package me.hugmanrique.craftpatch;
 
-import me.hugmanrique.craftpatch.transform.NewArrayTransform;
+import me.hugmanrique.craftpatch.transform.expr.NewArrayTransform;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
