@@ -30,6 +30,10 @@ public class SimplePatch extends AbstractPatch {
         super(target, methodName, methodParamTypes);
     }
 
+    public SimplePatch(String target, String methodName, String[] methodParamClassNames) {
+        super(target, methodName, methodParamClassNames);
+    }
+
     @Override
     public void transform(ClassPool pool, CtClass clazz, CtMethod method) throws CannotCompileException {
         Collection<Transformation> transformations = transformations();

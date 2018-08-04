@@ -47,6 +47,16 @@ public interface Patch {
     }
 
     /**
+     * Parameter types class names of the target method of this patch. If {@code null},
+     * will check {@link #methodParams()} instead. Only methods declared in the class
+     * will be returned (by using {@link CtClass#getDeclaredMethod(String, CtClass[])}).
+     * @return method's parameter type class names this patch targets.
+     */
+    default String[] methodParamClassNames() {
+        return null;
+    }
+
+    /**
      * Collection of all the transformations that will get applied to the
      * target class, and if not {@code null}, the the target method.
      */

@@ -18,27 +18,33 @@ public abstract class AbstractPatch implements Patch {
     protected final String methodName;
     protected final String methodDescription;
     protected final Class<?>[] methodParamTypes;
+    protected final String[] methodParamClassNames;
 
     protected final List<Transformation> transformations;
 
-    private AbstractPatch(String target, String methodName, String methodDescription, Class<?>[] methodParamTypes) {
+    private AbstractPatch(String target, String methodName, String methodDescription, Class<?>[] methodParamTypes, String[] methodParamClassNames) {
         this.target = Objects.requireNonNull(target);
         this.methodName = methodName;
         this.methodDescription = methodDescription;
         this.methodParamTypes = methodParamTypes;
+        this.methodParamClassNames = methodParamClassNames;
         this.transformations = new ArrayList<>();
     }
 
     protected AbstractPatch(String target, String methodName) {
-        this(target, methodName, null, null);
+        this(target, methodName, null, null, null);
     }
 
     public AbstractPatch(String target, String methodName, String methodDescription) {
-        this(target, methodName, methodDescription, null);
+        this(target, methodName, methodDescription, null, null);
     }
 
     public AbstractPatch(String target, String methodName, Class<?>[] methodParamTypes) {
-        this(target, methodName, null, methodParamTypes);
+        this(target, methodName, null, methodParamTypes, null);
+    }
+
+    public AbstractPatch(String target, String methodName, String[] methodParamClassNames) {
+        this(target, methodName, null, null, methodParamClassNames);
     }
 
     @Override
@@ -59,6 +65,11 @@ public abstract class AbstractPatch implements Patch {
     @Override
     public Class<?>[] methodParams() {
         return methodParamTypes;
+    }
+
+    @Override
+    public String[] methodParamClassNames() {
+        return methodParamClassNames;
     }
 
     @Override
