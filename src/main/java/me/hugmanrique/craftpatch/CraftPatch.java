@@ -3,6 +3,7 @@ package me.hugmanrique.craftpatch;
 import javassist.*;
 import me.hugmanrique.craftpatch.util.ClassUtil;
 
+import java.io.IOException;
 import java.util.Objects;
 
 /**
@@ -20,7 +21,7 @@ public class CraftPatch {
         this(ClassPool.getDefault());
     }
 
-    public Class applyPatch(Patch patch) throws CannotCompileException {
+    private CtClass transformTarget(Patch patch) throws CannotCompileException {
         CtClass clazz = classPool.getOrNull(patch.target());
 
         if (clazz == null) {
@@ -39,7 +40,15 @@ public class CraftPatch {
 
         patch.transform(classPool, clazz, method);
 
-        return clazz.toClass();
+        return clazz;
+    }
+
+    public byte[] getBytecode(Patch patch) throws CannotCompileException, IOException {
+        return Objects.requireNonNull(transformTarget(patch)).toBytecode();
+    }
+
+    public Class applyPatch(Patch patch) throws CannotCompileException {
+        return Objects.requireNonNull(transformTarget(patch)).toClass();
     }
 
     private CtMethod getMethod(Patch patch, CtClass clazz) throws NotFoundException {
