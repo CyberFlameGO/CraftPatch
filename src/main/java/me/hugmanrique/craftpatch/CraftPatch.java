@@ -43,6 +43,7 @@ public class CraftPatch {
     }
 
     private CtMethod getMethod(Patch patch, CtClass clazz) throws NotFoundException {
+        String[] paramClassNames = patch.methodParamClassNames();
         Class<?>[] methodParams = patch.methodParams();
         String methodName = patch.method();
 
@@ -51,7 +52,10 @@ public class CraftPatch {
             return null;
         }
 
-        if (methodParams != null) {
+        if (paramClassNames != null) {
+            CtClass[] paramClasses = ClassUtil.toJavassistClasses(classPool, paramClassNames);
+            return clazz.getDeclaredMethod(methodName, paramClasses);
+        } else if (methodParams != null) {
             CtClass[] paramClasses = ClassUtil.toJavassistClasses(classPool, methodParams);
             return clazz.getDeclaredMethod(methodName, paramClasses);
         } else if (patch.methodDescription() != null) {

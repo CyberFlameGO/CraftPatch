@@ -8,6 +8,7 @@ import javassist.NotFoundException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.function.Function;
 
 /**
  * @author Hugo Manrique
@@ -34,7 +35,6 @@ public class ClassUtil {
         return null;
     }
 
-
     public static CtClass toJavassistClass(ClassPool pool, Class<?> clazz) {
         return pool.getOrNull(clazz.getName());
     }
@@ -42,6 +42,12 @@ public class ClassUtil {
     public static CtClass[] toJavassistClasses(ClassPool pool, Class<?>... classes) {
         return Arrays.stream(classes)
                 .map(clazz -> toJavassistClass(pool, clazz))
+                .toArray(CtClass[]::new);
+    }
+
+    public static CtClass[] toJavassistClasses(ClassPool pool, String... classNames) {
+        return Arrays.stream(classNames)
+                .map((Function<String, Object>) pool::getOrNull)
                 .toArray(CtClass[]::new);
     }
 
