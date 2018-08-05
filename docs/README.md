@@ -51,7 +51,7 @@ In patch jargon `MyClass` is the **target class**, it is the class which the pat
 
 Patches get applied by a `PatchApplier`, that depending on its implementation, will load the class (from disk), run each transformation, build the resulting bytecode and, if necessary, replace the already loaded class bytecode.
 
-## 2. Targetting methods
+## 2. Targeting methods
 
 In this case, we will want to apply the patch to a single method (`checkCode`), the **target method**. CraftPatch is also capable of transforming all the methods a class contains (this will be explored in the following sections).
 
