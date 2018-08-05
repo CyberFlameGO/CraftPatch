@@ -14,7 +14,7 @@ import java.util.Collection;
 public interface Patch {
     /**
      * Target class for this patch. Referencing an already loaded class
-     * e.g. by using {@link Class#getName() using this property is an error
+     * e.g. by using {@link Class#getName()} using this property is an error
      * condition and will throw an exception at runtime.
      * @return class this patch targets.
      */
