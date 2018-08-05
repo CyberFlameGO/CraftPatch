@@ -110,7 +110,7 @@ This strategy reads the source `.class` file contained in your `.jar` file, appl
 
 ### Class redefinition strategy
 
-A slower alternative that will (generally speaking) always patch any class. It works by [attaching a Java agent](https://www.javacodegeeks.com/2015/09/java-agents.html) to the JVM process to grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) instance (this process will usually take 1 to 2 seconds), creating the needed class definitions from the patch and finally calling [`Instrumentation#redefineClasses()`](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html#redefineClasses-java.lang.instrument.ClassDefinition...-).
+A slower alternative that will (generally speaking) patch any class. It works by [attaching a Java agent](https://www.javacodegeeks.com/2015/09/java-agents.html) to the JVM process to grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) instance (this process will usually take 1 to 2 seconds), creating the needed class definitions from the patch and finally calling [`Instrumentation#redefineClasses()`](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html#redefineClasses-java.lang.instrument.ClassDefinition...-).
 
 ## 4. Applying the patch
 
