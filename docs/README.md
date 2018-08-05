@@ -36,7 +36,7 @@ I will be using to demostrate how patches are applied, and some peculiar corners
 In order to think about how patches work, I will present a canned example where we will be looking at a class `MyClass`, which contains a `myMethod` method and a `ownText` field:
 
 ```java
-package pack;
+package com.mypackage;
 
 class MyClass {
     String ownText = "abc";
@@ -67,23 +67,40 @@ Another limitation of this process is that your patch must only contain modifica
 
 The patch applier has methods to specify which class redefinition strategy you want to use:
 
-- The faster but more restrictive which you can only apply if the **target class** is not loaded.
-- The slower alternative which (generally speaking) will always work.
+- The **class loading** strategy: a faster but more restrictive which you can only apply if the **target class** is not loaded. It works by reading the source `.class` file contained in your `.jar` file, applying the transformations and finally loading the transformed class.
+
+- The **class redefinition** strategy: a slower alternative which (generally speaking) will always work. First, it attaches a Java agent to the JVM process to grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) object, creates the needed class definitions  and then calls [`Instrumentation#redefinedClasses()`](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html#redefineClasses-java.lang.instrument.ClassDefinition...-).
+
+Also, don't worry about security, the dynamic agent is governed by the same security context applicable for Java classes and respective classloaders.
 
 ## 2. Targetting methods
 
-In this case, we will want to apply the patch to a single method (`myMethod`), the **target method**. CraftPatch is also capable of transforming all the methods a class contains, but this will be explored in the following sections.
+In this case, we will want to apply the patch to a single method (`myMethod`), the **target method**. CraftPatch is also capable of transforming all the methods a class contains (this will be explored in the following sections).
 
 Apart from knowing the target method name, the patch also needs to know about the method params[<sup>1</sup>](#nb1), and there are 3 ways of specifying them:
 
 - By passing the method descriptor[<sup>2</sup>](#nb2) (as defined in the JVM specification), if `null` the patch will fallback to a name-based method search.
-- By passing the parameter type classes. The downside to this approach is that the classes must be loaded and this will limit the kinds of transformations this patch can apply (as we will see in the next section). If `null`, it will fallback to the previous approach.
-- By passing the parameter type class names. This is the solution to the previous approach downside, which will make the patching process more flexible and faster (as we will see in the next section), but the patch might not be able to find those classes if the current [ClassLoader](https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html) cannot find the class by its name, in which case it will fallback to the previous strategy.
+- By passing the parameter type classes. The downside to this approach is that the classes will get loaded so the slower class redefinition strategy will get used. If `null`, it will fallback to the previous approach.
+- By passing the parameter type class names. This is the solution to the previous approach downside, which will make the patching process more flexible and faster (as it will use the **class loading** strategy). Will fallback to the previous approach if the classes cannot be found by the current [ClassLoader](https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html) or `null`.
 
 If every approach fails, the patch won't be applied and a `PatchApplyException` will be thrown.
 
 > <a name="nb1"><sup>1</sup></a> CraftPatch is also able to find a method only by its name, but specifying the target method's signature is faster and less error prone.
-> <a name="nb2"><sup>2</sup></a>
+>
+> <a name="nb2"><sup>2</sup></a> A method's **signature** is its set of parameters and *its return type*. For example, for the method:
+> ```java
+> public ThingType getNearestThing(boolean lookup, int x, int y, double radius) {}
+> ```
+> the signature would be
+> ```
+> (boolean,int,int,double)com.mypackage.ThingType
+> ```
+> note that we put the parameters in parentheses and the return type on the end. In practice to save space, [a more compact syntax is used](https://www.murrayc.com/permalink/1998/03/13/the-java-class-file-format/#TypeDescriptors) and in bytecode the above signature would look like this:
+> ```
+> (ZIID)Lcom/mypackage/ThingType;
+> ```
+
+
 
 <!--Let's get started by creating a `PatchApplier` instance, which will be in charge of transforming your patches to bytecode and redefining the classes they target:
 
