@@ -68,7 +68,8 @@ Next, we will create a `Patch` that will hold all the transformations we want to
 Patch patch = new SimplePatch("pack.MyClass", "myMethod", String.class);
 ```
 
-> **Important:** due to how class loading works in Java we can only transform non-loaded classes, which means you cannot use the referenced class (`MyClass`) before the patch gets applied by the `CraftPatch` instance we just created. Calling `MyClass.class.getName()` would load the class, so we need to specify the classname using a raw `String`.
+> ~~**Important:** due to how class loading works in Java we can only transform non-loaded classes, which means you cannot use the referenced class (`MyClass`) before the patch gets applied by the `CraftPatch` instance we just created. Calling `MyClass.class.getName()` would load the class, so we need to specify the classname using a raw `String`.~~
+> A tutorial on applying patches that redefine classes on runtime is coming soon.
 
 Now, let's try to override the value returned by the `ownText` field access and return `"def"` instead:
 
