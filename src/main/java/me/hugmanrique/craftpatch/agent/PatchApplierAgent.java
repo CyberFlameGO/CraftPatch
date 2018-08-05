@@ -42,11 +42,11 @@ import static java.util.jar.Attributes.Name.MANIFEST_VERSION;
  * @since 05/08/2018
  */
 public class PatchApplierAgent {
-    private static final Logger LOGGER = Logger.getLogger(PatchApplierAgent.class.getSimpleName());
-    private static volatile Instrumentation instrumentation;
-
     private static final int LOAD_ATTEMPTS = 20;
     private static final long ATTEMPT_WAIT_TIME = Duration.ofMillis(500).toMillis();
+    private static final Logger LOGGER = Logger.getLogger(PatchApplierAgent.class.getSimpleName());
+
+    private static volatile Instrumentation instrumentation;
 
     public static void agentmain(String agentArgs, Instrumentation inst) {
         if (!inst.isRedefineClassesSupported()) {

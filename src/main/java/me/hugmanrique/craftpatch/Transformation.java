@@ -29,7 +29,7 @@ public interface Transformation<T> {
 
     /**
      * Priority for the transformation, relative to other
-     * transformations targetting the same classes/methods.
+     * transformations targeting the same classes/methods.
      */
     int priority();
 
