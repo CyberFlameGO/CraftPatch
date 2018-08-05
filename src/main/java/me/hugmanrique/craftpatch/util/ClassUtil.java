@@ -67,4 +67,8 @@ public class ClassUtil {
 
         return null;
     }
+
+    public static String getClassResourceName(Class<?> clazz) {
+        return clazz.getName().replace('.', '/') + ".class";
+    }
 }

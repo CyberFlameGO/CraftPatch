@@ -4,6 +4,7 @@ import javassist.*;
 import me.hugmanrique.craftpatch.util.ClassUtil;
 
 import java.io.IOException;
+import java.lang.instrument.ClassDefinition;
 import java.util.Objects;
 
 /**
@@ -45,6 +46,12 @@ public class CraftPatch {
 
     public byte[] getBytecode(Patch patch) throws CannotCompileException, IOException {
         return Objects.requireNonNull(transformTarget(patch)).toBytecode();
+    }
+
+    public ClassDefinition getDefinition(Patch patch) throws CannotCompileException, IOException, ClassNotFoundException {
+        Class clazz = Class.forName(patch.target());
+
+        return new ClassDefinition(clazz, getBytecode(patch));
     }
 
     public Class applyPatch(Patch patch) throws CannotCompileException {
