@@ -68,9 +68,9 @@ The patch applier has methods to specify which class redefinition strategy you w
 
 - The **class loading** strategy: a faster but more restrictive method which you can only apply if the **target class** is not loaded. It works by reading the source `.class` file contained in your `.jar` file, applying the transformations and finally loading the transformed class.
 
-- The **class redefinition** strategy: a slower alternative which (generally speaking) will always work. First, it attaches a Java agent to the JVM process to grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) object, creates the needed class definitions  and then calls [`Instrumentation#redefinedClasses()`](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html#redefineClasses-java.lang.instrument.ClassDefinition...-).
+- The **class redefinition** strategy: a slower alternative which (generally speaking) will always work. First, it attaches a Java agent to the JVM process to grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) object, creates the needed class definitions  and then calls [`Instrumentation#redefineClasses()`](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html#redefineClasses-java.lang.instrument.ClassDefinition...-).
 
-Also, don't worry about security, the dynamic agent is governed by the same security context applicable for Java classes and respective classloaders.
+Also, don't worry about security, the attached agent is governed by the same security context applicable for Java classes and respective classloaders.
 
 ## 2. Targetting methods
 
@@ -107,7 +107,7 @@ So now we know the basic tasks that CraftPatch must achieve in order to allow us
 Patch patch = new SimplePatch("com.mypackage.MyClass", "checkCode", String.class);
 ```
 
-Yes it really is that simple. Using the `SimplePatch(String targetClass, String methodName, Class[] methodParamTypes...)` constructor specifies the **target class** we awnt to apply it to and a way to retrieve the method we want to target.
+Yes it really is that simple. Using the `SimplePatch(String targetClass, String methodName, Class[] methodParamTypes...)` constructor specifies the **target class** we want to apply it to and a way to find the method we want to target.
 
 If we were to include this patch in our runtime right now and run our application, the patch wouldn't be applied and absolutely anything would be changed, this is because _(1)_ we haven't haven't created a `PatchApplier` that creates the new bytecode and transforms the **target class** and, _(2)_ we haven't actually added any transformations to the patch. Let's take a look at how we can achieve objective **1** above, and actually apply the patch:
 
@@ -125,7 +125,7 @@ That's it! Any transformations added to the patch will get applied sequentially 
 
 ## 3. Transformations 101
 
-Since we've taken care of the first objective and can now successfully apply our patch to the **target class**, let's take a look at the second objective:
+Since we've taken care of the first objective and can now successfully apply our patch to the **target class**, let's take a look at the second objective using an example:
 
 - Let us modify the value returned by the _field access_ of `ownText` on the `checkCode` method to return `"def"` instead of `"abc"`.
 
@@ -192,7 +192,21 @@ Transformation castTransform =
                 .append("if (!($1 instanceof java.util.ArrayList)) { $1 = new java.util.ArrayList($1); }");
 ```
 
-## 4. Creating your own transforms
+Here's a list of all the built-in transformations (we also encourage you to go through each transformation test and check the example implementations):
+
+- Expression transformations
+    - [`CastTransform`](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/expr/CastTransform.html)
+    - [`CatchTransform`](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/expr/CatchTransform.html)
+    - [`FieldAccessTransform`](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/expr/FieldAccessTransform.html)
+    - [`InstanceofTransform`](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/expr/InstanceofTransform.html)
+    - [`MethodCallTransform`](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/expr/MethodCallTransform.html)
+    - [`NewArrayTransform`](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/expr/NewArrayTransform.html)
+    - [`NewExprTransform`](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/expr/NewExprTransform.html)
+- Method transformations
+    - [`MethodTransform`](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/method/MethodTransform.html)
+    - [`CopyMethodTransform`](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/method/CopyMethodTransform.html)
+
+## 4. Creating your own transformations
 
 Coming soon
 
