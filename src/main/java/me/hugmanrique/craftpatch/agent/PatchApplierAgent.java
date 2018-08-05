@@ -1,9 +1,9 @@
 package me.hugmanrique.craftpatch.agent;
 
 import com.sun.tools.attach.VirtualMachine;
-import javassist.CannotCompileException;
 import me.hugmanrique.craftpatch.CraftPatch;
 import me.hugmanrique.craftpatch.Patch;
+import me.hugmanrique.craftpatch.PatchApplyException;
 import me.hugmanrique.craftpatch.util.ClassUtil;
 import me.hugmanrique.craftpatch.util.StreamUtil;
 
@@ -34,7 +34,7 @@ import static java.util.jar.Attributes.Name.MANIFEST_VERSION;
  * You only need to call {@link #applyPatches(CraftPatch, Patch...)}. The agent stuff will be done
  * automatically (and lazily).
  *
- * Note that patches must only contain modification transformations. The transformed version must
+ * Note that patches must only contain modification transformations. The transformed class must
  * retain the same schema i.e. methods and fields cannot be added or removed.
  *
  * @see #applyPatches(CraftPatch, Patch...)
@@ -66,19 +66,22 @@ public class PatchApplierAgent {
      *
      * @param patcher The patcher that will compile the patch
      * @param patches Patches that need to be applied
-     * @throws AgentLoadException if the agent either failed to load or if the agent wasn't able to get
-     *                            an instance of {@link Instrumentation} that allows class redefinitions.
-     * @throws UnmodifiableClassException as thrown by {@link Instrumentation#redefineClasses(ClassDefinition...)}
-     * @throws ClassNotFoundException as thrown by {@link Instrumentation#redefineClasses(ClassDefinition...)}
+     * @return an array of all the transformed classes
+     * @throws PatchApplyException if the agent either failed to load or if the agent wasn't able to get
+     *                             an instance of {@link Instrumentation} that allows class redefinitions.
      */
-    public static void applyPatches(CraftPatch patcher, Patch... patches) throws AgentLoadException, UnmodifiableClassException, ClassNotFoundException {
-        ensureAgentLoaded();
+    public static Class[] applyPatches(CraftPatch patcher, Patch... patches) throws PatchApplyException {
+        try {
+            ensureAgentLoaded();
+        } catch (AgentLoadException e) {
+            throw new PatchApplyException(e);
+        }
 
         ClassDefinition[] definitions = Arrays.stream(patches)
                 .map(patch -> {
                     try {
                         return patcher.getDefinition(patch);
-                    } catch (CannotCompileException | IOException | ClassNotFoundException e) {
+                    } catch (PatchApplyException e) {
                         e.printStackTrace();
                     }
 
@@ -87,7 +90,15 @@ public class PatchApplierAgent {
                 .filter(Objects::nonNull)
                 .toArray(ClassDefinition[]::new);
 
-        instrumentation.redefineClasses(definitions);
+        try {
+            instrumentation.redefineClasses(definitions);
+        } catch (ClassNotFoundException | UnmodifiableClassException e) {
+            throw new PatchApplyException(e);
+        }
+
+        return Arrays.stream(definitions)
+                .map(ClassDefinition::getDefinitionClass)
+                .toArray(Class[]::new);
     }
 
     private static void ensureAgentLoaded() throws AgentLoadException {

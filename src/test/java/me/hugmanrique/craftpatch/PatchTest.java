@@ -1,6 +1,5 @@
 package me.hugmanrique.craftpatch;
 
-import javassist.CannotCompileException;
 import me.hugmanrique.craftpatch.patch.simple.SimplePatch;
 
 import java.lang.reflect.Method;
@@ -30,7 +29,7 @@ public class PatchTest {
 
         try {
             patcher.applyPatch(patch);
-        } catch (CannotCompileException e) {
+        } catch (PatchApplyException e) {
             e.printStackTrace();
             fail();
         }

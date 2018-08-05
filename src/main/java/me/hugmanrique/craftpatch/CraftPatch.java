@@ -1,6 +1,7 @@
 package me.hugmanrique.craftpatch;
 
 import javassist.*;
+import me.hugmanrique.craftpatch.agent.PatchApplierAgent;
 import me.hugmanrique.craftpatch.util.ClassUtil;
 
 import java.io.IOException;
@@ -22,7 +23,7 @@ public class CraftPatch {
         this(ClassPool.getDefault());
     }
 
-    private CtClass transformTarget(Patch patch) throws CannotCompileException {
+    private CtClass applyTransforms(Patch patch) throws PatchApplyException {
         CtClass clazz = classPool.getOrNull(patch.target());
 
         if (clazz == null) {
@@ -35,27 +36,54 @@ public class CraftPatch {
         try {
             method = getMethod(patch, clazz);
         } catch (NotFoundException e) {
-            e.printStackTrace();
-            return null;
+            throw new PatchApplyException(e);
         }
 
-        patch.transform(classPool, clazz, method);
+        try {
+            patch.transform(classPool, clazz, method);
+        } catch (CannotCompileException e) {
+            throw new PatchApplyException(e);
+        }
 
         return clazz;
     }
 
-    public byte[] getBytecode(Patch patch) throws CannotCompileException, IOException {
-        return Objects.requireNonNull(transformTarget(patch)).toBytecode();
+    public Class<?> applyPatch(Patch patch) throws PatchApplyException {
+        return applyPatch(patch, false);
     }
 
-    public ClassDefinition getDefinition(Patch patch) throws CannotCompileException, IOException, ClassNotFoundException {
-        Class clazz = Class.forName(patch.target());
+    public Class<?> applyPatch(Patch patch, boolean redefine) throws PatchApplyException {
+        CtClass clazz = applyTransforms(patch);
 
-        return new ClassDefinition(clazz, getBytecode(patch));
+        if (redefine) {
+            Class[] classes = PatchApplierAgent.applyPatches(this, patch);
+
+            return classes[0];
+        }
+
+        try {
+            return clazz.toClass();
+        } catch (CannotCompileException e) {
+            throw new PatchApplyException(e);
+        }
     }
 
-    public Class applyPatch(Patch patch) throws CannotCompileException {
-        return Objects.requireNonNull(transformTarget(patch)).toClass();
+    public byte[] getBytecode(Patch patch) throws PatchApplyException {
+        try {
+            return applyTransforms(patch).toBytecode();
+        } catch (IOException | CannotCompileException e) {
+            throw new PatchApplyException(e);
+        }
+    }
+
+    public ClassDefinition getDefinition(Patch patch) throws PatchApplyException {
+        try {
+            Class clazz = Class.forName(patch.target());
+
+            return new ClassDefinition(clazz, getBytecode(patch));
+        } catch (ClassNotFoundException e) {
+            throw new PatchApplyException(e);
+        }
     }
 
     private CtMethod getMethod(Patch patch, CtClass clazz) throws NotFoundException {
