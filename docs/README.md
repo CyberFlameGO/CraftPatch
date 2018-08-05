@@ -53,7 +53,7 @@ Patches get applied by a `PatchApplier`, that depending on its implementation, w
 
 ## 2. Targeting methods
 
-In this case, we will want to apply the patch to a single method (`checkCode`), the **target method**. CraftPatch is also capable of transforming all the methods a class contains (this will be explored in the following sections).
+In this case, we want to apply the patch to a single method (`checkCode`), the **target method**. CraftPatch is also capable of transforming all the methods a class contains (this will be explored in the following sections).
 
 Apart from knowing the target method name, the patch also needs to know about the method params[<sup>1</sup>](#nb1), and there are 3 ways of specifying them:
 
@@ -63,7 +63,7 @@ Apart from knowing the target method name, the patch also needs to know about th
 
 If every approach fails, the patch won't be applied and a `PatchApplyException` will be thrown.
 
-> <a name="nb1"><sup>1</sup></a> CraftPatch will fallback to finding a method only by its name if none of the options above were passed, but specifying the target method's signature is faster and less error prone.
+> <a name="nb1"><sup>1</sup></a> CraftPatch will fallback to a name-based search if none of the options above were passed, but specifying the target method's signature is faster and less error prone.
 >
 > <a name="nb2"><sup>2</sup></a> A method's **signature** is its set of parameters and *its return type*. For example, for the method:
 > ```java
@@ -80,7 +80,7 @@ If every approach fails, the patch won't be applied and a `PatchApplyException` 
 
 ### 3. Creating our first patch
 
-So now we know the basic tasks that CraftPatch must achieve in order to allow us to modify classes under all conditions in runtime. First, let's look at how we declare a patch class with `MyClass` as its **target class** and `checkCode` as its **target method**:
+So now that we know the ways to specify a **target method** let's look at how we declare a patch class with `MyClass` as its **target class** and `checkCode` as its **target method**:
 
 ```java
 Patch patch = new SimplePatch("com.mypackage.MyClass", "checkCode", String.class);
@@ -110,7 +110,7 @@ This strategy reads the source `.class` file contained in your `.jar` file, appl
 
 ### Class redefinition strategy
 
-A slower alternative that will (generally speaking) always work. It works by [attaching a Java agent](https://www.javacodegeeks.com/2015/09/java-agents.html) to the JVM process to grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) instance (this process will usually take 1 to 2 seconds), creating the needed class definitions from the patch and finally calling [`Instrumentation#redefineClasses()`](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html#redefineClasses-java.lang.instrument.ClassDefinition...-).
+A slower alternative that will (generally speaking) always patch any class. It works by [attaching a Java agent](https://www.javacodegeeks.com/2015/09/java-agents.html) to the JVM process to grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) instance (this process will usually take 1 to 2 seconds), creating the needed class definitions from the patch and finally calling [`Instrumentation#redefineClasses()`](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html#redefineClasses-java.lang.instrument.ClassDefinition...-).
 
 ## 4. Applying the patch
 
