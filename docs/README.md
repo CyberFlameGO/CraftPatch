@@ -49,28 +49,7 @@ class MyClass {
 
 In patch jargon `MyClass` is the **target class**, it is the class which the patch will be applied to. A patch contains **transformations** that will modify the bytecode of the class in stages, and are able to add, remove and modify constructors, methods and fields.
 
-A `PatchApplier` is in charge of loading the class (from disk), applying each transformation and building the resulting bytecode. At this point, you may ask yourself the following questions:
-
-- What are the practical implications of loading a class in terms of what kinds of transformations can be applied?
-
-- Is it even possible to redefine the bytecode of an already loaded class?
-
-After all, the bytecode is only stored in disk and accessing the bytecode of a class in memory would present security issues, right?
-
-In order to answer these questions, we need to talk about the Java [Instrumentation API](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html): this API gives us the option to access a class that is loaded by the Java classloader from the JVM and modify its bytecode by inserting the resulting one from the patch.
-
-<!-- TODO Rewrite this section -->
-So, if a patch needs to modify a class that was already loaded by the JVM, CraftPatch will create and [attach an agent](https://www.javacodegeeks.com/2015/09/java-agents.html) dynamically (which is a process that usually takes 1 to 2 seconds, so it will increment the time it takes for a patch to get fully applied).
-
-Another limitation of this process is that your patch must only contain modification transformations. What this means is that the transformed class must retain the same schema i.e. constructor, methods and fields cannot be added, renamed or removed.
-
-The patch applier has methods to specify which class redefinition strategy you want to use:
-
-- The **class loading** strategy: a faster but more restrictive method which you can only apply if the **target class** is not loaded. It works by reading the source `.class` file contained in your `.jar` file, applying the transformations and finally loading the transformed class.
-
-- The **class redefinition** strategy: a slower alternative which (generally speaking) will always work. First, it attaches a Java agent to the JVM process to grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) object, creates the needed class definitions  and then calls [`Instrumentation#redefineClasses()`](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html#redefineClasses-java.lang.instrument.ClassDefinition...-).
-
-Also, don't worry about security, the attached agent is governed by the same security context applicable for Java classes and respective classloaders.
+Patches get applied by a `PatchApplier`, that depending on its implementation, will load the class (from disk), run each transformation, build the resulting bytecode and, if necessary, replace the already loaded class bytecode.
 
 ## 2. Targetting methods
 
@@ -109,6 +88,32 @@ Patch patch = new SimplePatch("com.mypackage.MyClass", "checkCode", String.class
 
 Yes it really is that simple. Using the `SimplePatch(String targetClass, String methodName, Class[] methodParamTypes...)` constructor specifies the **target class** we want to apply it to and a way to find the method we want to target.
 
+Now, take a look at the code above again. Don't you think it would be much more mantainable to pass `MyClass.class.getName()` as the first parameter? By default, CraftPatch will happily patch any class, however if a [ClassLoader](https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html) loaded the class before (or you aren't sure) applying the patch will result in a `PatchApplyException`. Before continuing, ask yourself the following questions:
+
+- What are the implications of loading a class?
+
+- Is it even possible to redefine the bytecode of an already loaded class?
+
+After all, the bytecode is only stored in disk and accessing the bytecode of a class in memory would present security issues, right? The answer to the two questions is:
+
+- Once a class gets loaded by the JVM class loader, it's no longer possible to redefine it using the default **class loading** strategy the `PatchApplier` uses, which will cause problems if you're trying to modify it with a patch.
+
+- Fortunately, Java has an [Instrumentation API](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) which gives us the option to modify the bytecode from an already loaded class. If a patch needs to modify an already loaded class, you will need to specify you want to use the **class redefinition** strategy explained below.
+
+Also, don't worry about security, the attached agent is governed by the same security context applicable for Java classes and respective classloaders.
+
+### Class loading strategy
+
+A faster but more restrictive method of applying patches. CraftPatch will happily compile any class using this strategy, however if a [`ClassLoader`](https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html) loaded the class applying the patch will result in a `PatchApplyException`.
+
+This strategy reads the source `.class` file contained in your `.jar` file, applies all the patch transformations and finally loads the transformed class.
+
+### Class redefinition strategy
+
+A slower alternative that will (generally speaking) always work. It works by [attaching a Java agent](https://www.javacodegeeks.com/2015/09/java-agents.html) to the JVM process to grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) instance (this process will usually take 1 to 2 seconds), creating the needed class definitions from the patch and finally calling [`Instrumentation#redefineClasses()`](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html#redefineClasses-java.lang.instrument.ClassDefinition...-).
+
+## 4. Applying the patch
+
 If we were to include this patch in our runtime right now and run our application, the patch wouldn't be applied and absolutely anything would be changed, this is because _(1)_ we haven't haven't created a `PatchApplier` that creates the new bytecode and transforms the **target class** and, _(2)_ we haven't actually added any transformations to the patch. Let's take a look at how we can achieve objective **1** above, and actually apply the patch:
 
 ```java
@@ -123,7 +128,17 @@ try {
 
 That's it! Any transformations added to the patch will get applied sequentially to the **target class** when the patch is applied.
 
-## 3. Transformations 101
+If the **target class** is loaded, you will need to call the same method with the `redefine` boolean flag set to `true` to use the **class redefinition** strategy:
+
+```java
+try {
+    applier.applyPatch(patch, true);
+} catch (PatchApplyException e) {
+    e.printStackTrace();
+}
+```
+
+## 5. Transformations 101
 
 Since we've taken care of the first objective and can now successfully apply our patch to the **target class**, let's take a look at the second objective using an example:
 
@@ -152,19 +167,6 @@ myClass.checkCode("def"); // true, even if `ownText` is "abc"
 ```
 
 > You will need to become familiar with Javassist [special variables](http://www.javassist.org/tutorial/tutorial2.html#intro) if you plan to use _transforms_.
-
-Because we haven't loaded the **target class** at any point (note how we passed a raw string instead of calling `MyClass.class.getName()`), CraftPatch will happily patch the class, however if a [ClassLoader](https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html) loaded the class before (or you aren't sure) calling `PatchApplier#applyPatch(Patch)` will result in a `PatchApplyException`. We can fix this by calling the same method with the `redefine` boolean flag set to `true`:
-
-```java
-try {
-    // Will use the class redefinition strategy
-    applier.applyPatch(patch, true);
-} catch (PatchApplyException e) {
-    e.printStackTrace();
-}
-```
-
-Now when the patch gets applied, CraftPatch will attach a Java agent, grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) instance and convert the patches to [`ClassDefinition`s](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassDefinition.html).
 
 All transformations have `replace()`, `prepend()`, `append()` and `insert()` methods that receive a `String` object representing a statement or a block. A statement is a single control structure like `if` and `while` or an expression ending with a semicolon (`;`). A block is a set of statements surrounded by braces `{ }`. Hence each of the following lines is an example of a valid statement or block:
 
