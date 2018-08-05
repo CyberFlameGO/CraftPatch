@@ -27,7 +27,7 @@ public class CraftPatch {
         CtClass clazz = classPool.getOrNull(patch.target());
 
         if (clazz == null) {
-            throw new NullPointerException("Cannot find " + patch.target() + " class");
+            throw new PatchApplyException("Cannot find " + patch.target() + " class");
         }
 
         clazz.defrost();
