@@ -3,7 +3,7 @@ package me.hugmanrique.craftpatch.transform.method;
 import javassist.CannotCompileException;
 import javassist.ClassMap;
 import javassist.CtMethod;
-import me.hugmanrique.craftpatch.CraftPatch;
+import me.hugmanrique.craftpatch.PatchApplier;
 import me.hugmanrique.craftpatch.transform.AbstractTransform;
 import me.hugmanrique.craftpatch.util.ClassUtil;
 
@@ -29,12 +29,12 @@ public class CopyMethodTransform extends AbstractTransform<CtMethod> {
         this(source, new ClassMap(), filter);
     }
 
-    public CopyMethodTransform(CraftPatch patcher, Method sourceMethod, ClassMap classMap, Predicate<CtMethod> filter) {
-        this(ClassUtil.toJavassistMethod(patcher.getPool(), sourceMethod), classMap, filter);
+    public CopyMethodTransform(PatchApplier applier, Method sourceMethod, ClassMap classMap, Predicate<CtMethod> filter) {
+        this(ClassUtil.toJavassistMethod(applier.getPool(), sourceMethod), classMap, filter);
     }
 
-    public CopyMethodTransform(CraftPatch patcher, Method sourceMethod, Predicate<CtMethod> filter) {
-        this(patcher, sourceMethod, new ClassMap(), filter);
+    public CopyMethodTransform(PatchApplier applier, Method sourceMethod, Predicate<CtMethod> filter) {
+        this(applier, sourceMethod, new ClassMap(), filter);
     }
 
     @Override

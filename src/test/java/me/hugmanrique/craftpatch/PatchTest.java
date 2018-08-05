@@ -12,7 +12,7 @@ import static org.junit.Assert.fail;
  */
 public class PatchTest {
     protected static final double DELTA = 0.00001; // For floating-point comparisons
-    protected static final CraftPatch patcher = new CraftPatch();
+    protected static final PatchApplier applier = new PatchApplier();
 
     protected String getSubclassname(String className) {
         return getClass().getName() + "$" + className;
@@ -28,7 +28,7 @@ public class PatchTest {
         patch.addTransformations(transformations);
 
         try {
-            patcher.applyPatch(patch);
+            applier.applyPatch(patch);
         } catch (PatchApplyException e) {
             e.printStackTrace();
             fail();

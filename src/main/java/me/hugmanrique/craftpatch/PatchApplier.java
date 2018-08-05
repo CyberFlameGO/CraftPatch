@@ -12,14 +12,14 @@ import java.util.Objects;
  * @author Hugo Manrique
  * @since 31/07/2018
  */
-public class CraftPatch {
+public class PatchApplier {
     private final ClassPool classPool;
 
-    public CraftPatch(ClassPool classPool) {
+    public PatchApplier(ClassPool classPool) {
         this.classPool = Objects.requireNonNull(classPool);
     }
 
-    public CraftPatch() {
+    public PatchApplier() {
         this(ClassPool.getDefault());
     }
 

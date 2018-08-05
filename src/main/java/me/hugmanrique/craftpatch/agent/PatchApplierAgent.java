@@ -1,7 +1,7 @@
 package me.hugmanrique.craftpatch.agent;
 
 import com.sun.tools.attach.VirtualMachine;
-import me.hugmanrique.craftpatch.CraftPatch;
+import me.hugmanrique.craftpatch.PatchApplier;
 import me.hugmanrique.craftpatch.Patch;
 import me.hugmanrique.craftpatch.PatchApplyException;
 import me.hugmanrique.craftpatch.util.ClassUtil;
@@ -31,13 +31,13 @@ import static java.util.jar.Attributes.Name.MANIFEST_VERSION;
  * by Java 1.6 or later. Class redefinition is the act of replacing a class' bytecode at runtime,
  * after that class has already been loaded.
  *
- * You only need to call {@link #applyPatches(CraftPatch, Patch...)}. The agent stuff will be done
+ * You only need to call {@link #applyPatches(PatchApplier, Patch...)}. The agent stuff will be done
  * automatically (and lazily).
  *
  * Note that patches must only contain modification transformations. The transformed class must
  * retain the same schema i.e. methods and fields cannot be added or removed.
  *
- * @see #applyPatches(CraftPatch, Patch...)
+ * @see #applyPatches(PatchApplier, Patch...)
  * @author Hugo Manrique
  * @since 05/08/2018
  */
@@ -64,13 +64,13 @@ public class PatchApplierAgent {
      * an instance of {@link Instrumentation}. This agent load can introduce a pause
      * (in practice 1 to 2 seconds).
      *
-     * @param patcher The patcher that will compile the patch
+     * @param applier The patcher that will compile the patch
      * @param patches Patches that need to be applied
      * @return an array of all the transformed classes
      * @throws PatchApplyException if the agent either failed to load or if the agent wasn't able to get
      *                             an instance of {@link Instrumentation} that allows class redefinitions.
      */
-    public static Class[] applyPatches(CraftPatch patcher, Patch... patches) throws PatchApplyException {
+    public static Class[] applyPatches(PatchApplier applier, Patch... patches) throws PatchApplyException {
         try {
             ensureAgentLoaded();
         } catch (AgentLoadException e) {
@@ -80,7 +80,7 @@ public class PatchApplierAgent {
         ClassDefinition[] definitions = Arrays.stream(patches)
                 .map(patch -> {
                     try {
-                        return patcher.getDefinition(patch);
+                        return applier.getDefinition(patch);
                     } catch (PatchApplyException e) {
                         e.printStackTrace();
                     }
