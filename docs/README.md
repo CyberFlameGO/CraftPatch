@@ -100,7 +100,40 @@ If every approach fails, the patch won't be applied and a `PatchApplyException` 
 > (ZIID)Lcom/mypackage/ThingType;
 > ```
 
+### 3. Transformations 101
 
+As you've seen, each patch can contain multiple transformations which alter the target's bytecode, but why not keep that logic on the patch itself? Transformations are concise ways of targetting a single kind of bytecode instruction such as a method call (`INVOKESTATIC`), a cast (`CHECKCAST`)... and modifying its behaviour without affecting any other instructions on the same method.
+
+Transformations are heavily tied to [Javassist](http://www.javassist.org/) expressions, `CtMethod`s, `CtField`s and `CtConstructors`. CraftPatch provides a transformation implementation with useful methods for each instruction type which you can find on the [`transform.expr` package](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/me/hugmanrique/craftpatch/transform/expr/package-summary.html).
+
+Let's first start with an already implemented transformation and then see how we can create our own.
+
+Let's first look at the `myMethod` method's body of our imaginary class:
+
+```java
+void myMethod(String text) {
+    return ownText.equals(text);
+}
+```
+
+Even though this method seems simple, it contains the following instructions:
+
+- `ALOAD_0`: loads a reference onto the stack from the first parameter (`text`)
+- `GETFIELD #3`: accesses the `ownText` local field
+- `ALOAD_1`: loads a reference onto the stack from the `ownText` variable
+- `INVOKEVIRTUAL #4`: invokes the `String#equals(Object)` method, passing the `text` variable as a parameter
+- `IRETURN`: return the result of the previous method invocation
+
+In this example, we want to modify the `ownText` field access result and return `"def"` instead of `"abc"` (which would be the normal result without any bytecode redefinition applied). In contrast to the instructions above, using the built-in transformations is super user-friendly and only requires a couple lines of code:
+
+```java
+FieldAccessTransform transform = new FieldAccessTransform(access -> access.getFieldName().equals("ownText"))
+                                            .setResult("\"def\"");
+```
+
+The `FieldAccessTransform` takes an (optional) filter (a `Predicate<FieldAccess>`) which will return `true` if we want to apply the transformation on that field access or not (basically skipping it). Next, we call the `FieldAccessTransform#setResult(String result)` which takes the raw Java source as an input that will get compiled when the patch is applied.
+
+All the built-in transforms use the builder pattern so you can chain method calls. Also, all the **transformations** extend [`BaseTransform`](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/BaseTransform.html), so all the transformations support complete instruction replacements, raw source prepends and appends and method invocation prepends and appends (_and you can pass raw Java source to them!_)
 
 <!--Let's get started by creating a `PatchApplier` instance, which will be in charge of transforming your patches to bytecode and redefining the classes they target:
 
