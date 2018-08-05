@@ -33,9 +33,7 @@ I will be using to demostrate how patches are applied, and some peculiar corners
 
 ### 1. What's a patch?
 
-In order to think about how mixins work, I will present a canned example.
-
-In our canned example, we will be looking at a class `MyClass`, which contains a `myMethod` method and a `ownText` field:
+In order to think about how patches work, I will present a canned example where we will be looking at a class `MyClass`, which contains a `myMethod` method and a `ownText` field:
 
 ```java
 package pack;
