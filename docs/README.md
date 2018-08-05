@@ -139,11 +139,19 @@ FieldAccessTransform transform =
 
 There are some useful things to make a note of here:
 
-- Firstly, it's crucial to note that the **expression filter** will determine whether a bytecode instruction needs to be transformed or not. Most (if not all) the built-in transformations also have a constructor without a filter, but their use is discouraged as one of the key principles of transformations is that they should be fine-grained and should follow the [Single responsibility principle](https://en.wikipedia.org/wiki/Single_responsibility_principle). In this case we just check if the instruction is referencing a field that's called `ownText`. Other useful methods such as [`FieldAccess#getClassName()`](http://www.javassist.org/html/javassist/expr/FieldAccess.html#getClassName--) are available too!
+- Firstly, it's crucial to note that the **expression filter** will determine whether a bytecode instruction needs to be transformed or not. Most (if not all) the built-in transformations also have a constructor without a filter, but their use is discouraged as one of the key principles of transformations is that they should follow the [Single responsibility principle](https://en.wikipedia.org/wiki/Single_responsibility_principle). In this case we just check if the instruction is referencing a field that's called `ownText`. Other useful methods such as [`FieldAccess#getClassName()`](http://www.javassist.org/html/javassist/expr/FieldAccess.html#getClassName--) are available too!
 
 - We overrided the field access result by calling the `#setResult` method, which takes a code fragment with source text written in Java. CraftPatch includes a simple Java compiler courtesy of [Javassist](http://www.javassist.org) for processing source text. We just changed the return value from `"abc"` to `"def"`, but please note you can also call a external method such as `this.getClass().getSimpleName()`, in which case we would call `.setResult("this.getClass().getSimpleName()")`.
 
-You will need to become familiar with Javassist [special variables](http://www.javassist.org/tutorial/tutorial2.html#intro) if you plan to use _transforms_.
+Calling the following code after the patch gets applied would return `true`:
+
+```java
+MyClass myClass = new MyClass();
+
+myClass.checkCode("def"); // true, even if `ownText` is "abc"
+```
+
+> You will need to become familiar with Javassist [special variables](http://www.javassist.org/tutorial/tutorial2.html#intro) if you plan to use _transforms_.
 
 Because we haven't loaded the **target class** at any point (note how we passed a raw string instead of calling `MyClass.class.getName()`), CraftPatch will happily patch the class, however if a [ClassLoader](https://docs.oracle.com/javase/8/docs/api/java/lang/ClassLoader.html) loaded the class before (or you aren't sure) calling `PatchApplier#applyPatch(Patch)` will result in a `PatchApplyException`. We can fix this by calling the same method with the `redefine` boolean flag set to `true`:
 
@@ -158,8 +166,35 @@ try {
 
 Now when the patch gets applied, CraftPatch will attach a Java agent, grab an [Instrumentation](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/Instrumentation.html) instance and convert the patches to [`ClassDefinition`s](https://docs.oracle.com/javase/8/docs/api/java/lang/instrument/ClassDefinition.html).
 
+All transformations have `replace()`, `prepend()`, `append()` and `insert()` methods that receive a `String` object representing a statement or a block. A statement is a single control structure like `if` and `while` or an expression ending with a semicolon (`;`). A block is a set of statements surrounded by braces `{ }`. Hence each of the following lines is an example of a valid statement or block:
 
+```java
+System.out.println("Hello world"); // Statement
+{ System.out.println("Hello world"); } // Block
+if (i < 0) { i = -i; } // Statement
+```
 
+Of course, statements or blocks can refer to fields and methods and declare local variables. If you read the Javasist tutorial page, you will remember identifiers starting with `$` have [special meaning](http://www.javassist.org/tutorial/tutorial2.html#intro).
+
+Every transformation uses the builder pattern so you can chain method calls. For example, this is useful if you plan to append source code **and** modify a cast when using a [CastTransform](https://jitpack.io/com/github/hugmanrique/CraftPatch/master-SNAPSHOT/javadoc/me/hugmanrique/craftpatch/transform/expr/CastTransform.html), which you would create as follows:
+
+```java
+Transformation castTransform =
+                new CastTransform(cast -> {
+                    try {
+                        return cast.getType().getName().equals("List");
+                    } catch (NotFoundException e) {
+                        e.printStackTrace();
+                        return false;
+                    }
+                })
+                .setCastClass("ArrayList")
+                .append("if (!($1 instanceof java.util.ArrayList)) { $1 = new java.util.ArrayList($1); }");
+```
+
+## 4. Creating your own transforms
+
+Coming soon
 
 
 <!--As we've seen, each patch contains multiple transformations which will alter the target's bytecode once the patch gets applied, but why not keep that logic on the patch itself?
