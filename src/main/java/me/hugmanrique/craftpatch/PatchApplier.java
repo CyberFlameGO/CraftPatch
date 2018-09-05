@@ -1,7 +1,7 @@
 package me.hugmanrique.craftpatch;
 
 import javassist.*;
-import me.hugmanrique.craftpatch.agent.PatchApplierAgent;
+import me.hugmanrique.craftpatch.agent.PatchApplierAgentLoader;
 import me.hugmanrique.craftpatch.util.ClassUtil;
 
 import java.io.IOException;
@@ -56,7 +56,7 @@ public class PatchApplier {
         CtClass clazz = applyTransforms(patch);
 
         if (redefine) {
-            Class[] classes = PatchApplierAgent.applyPatches(this, patch);
+            Class[] classes = PatchApplierAgentLoader.applyPatches(this, patch);
 
             return classes[0];
         }
