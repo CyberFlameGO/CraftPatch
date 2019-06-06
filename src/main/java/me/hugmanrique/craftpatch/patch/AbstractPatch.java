@@ -3,10 +3,7 @@ package me.hugmanrique.craftpatch.patch;
 import me.hugmanrique.craftpatch.Patch;
 import me.hugmanrique.craftpatch.Transformation;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author Hugo Manrique
@@ -75,5 +72,16 @@ public abstract class AbstractPatch implements Patch {
     @Override
     public Collection<Transformation> transformations() {
         return transformations;
+    }
+
+    @Override
+    public String toString() {
+        return "AbstractPatch{" +
+                "target='" + target + '\'' +
+                ", methodName='" + methodName + '\'' +
+                ", methodDescription='" + methodDescription + '\'' +
+                ", methodParamTypes=" + Arrays.toString(methodParamTypes) +
+                ", methodParamClassNames=" + Arrays.toString(methodParamClassNames) +
+                '}';
     }
 }

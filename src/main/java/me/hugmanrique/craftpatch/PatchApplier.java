@@ -1,11 +1,12 @@
 package me.hugmanrique.craftpatch;
 
 import javassist.*;
-import me.hugmanrique.craftpatch.agent.PatchApplierAgentLoader;
+import me.hugmanrique.craftpatch.agent.InstrumentationFactory;
 import me.hugmanrique.craftpatch.util.ClassUtil;
 
 import java.io.IOException;
 import java.lang.instrument.ClassDefinition;
+import java.lang.instrument.Instrumentation;
 import java.util.Objects;
 
 /**
@@ -56,9 +57,25 @@ public class PatchApplier {
         CtClass clazz = applyTransforms(patch);
 
         if (redefine) {
-            Class[] classes = PatchApplierAgentLoader.applyPatches(this, patch);
+            ClassDefinition definition = getDefinition(patch);
 
-            return classes[0];
+            if (definition == null) {
+                throw new PatchApplyException("Class definition for patch" + patch + " was null");
+            }
+
+            try {
+                Instrumentation instrumentation = InstrumentationFactory.getInstrumentation();
+
+                if (instrumentation == null) {
+                    throw new RuntimeException("Instrumentation instance is null");
+                }
+
+                instrumentation.redefineClasses(definition);
+            } catch (Exception e) {
+                throw new PatchApplyException("Could not grab an Instrumentation instance", e);
+            }
+
+            return definition.getDefinitionClass();
         }
 
         try {
